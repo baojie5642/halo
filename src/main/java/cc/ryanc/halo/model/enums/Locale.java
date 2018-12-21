@@ -5,7 +5,7 @@ package cc.ryanc.halo.model.enums;
  * @version : 1.0
  * @date : 2018年09月08日
  */
-public enum LocaleEnum {
+public enum Locale {
 
     /**
      * 简体中文
@@ -19,7 +19,7 @@ public enum LocaleEnum {
 
     private String value;
 
-    LocaleEnum(String value) {
+    Locale(String value) {
         this.value = value;
     }
 

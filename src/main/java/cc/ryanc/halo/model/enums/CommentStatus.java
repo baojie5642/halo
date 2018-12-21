@@ -8,7 +8,7 @@ package cc.ryanc.halo.model.enums;
  * @author : RYAN0UP
  * @date : 2018/7/1
  */
-public enum CommentStatusEnum {
+public enum CommentStatus {
 
     /**
      * 已发布
@@ -28,7 +28,7 @@ public enum CommentStatusEnum {
     private Integer code;
     private String desc;
 
-    CommentStatusEnum(Integer code, String desc) {
+    CommentStatus(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
     }

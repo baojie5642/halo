@@ -2,7 +2,7 @@ package cc.ryanc.halo.web.controller.admin;
 
 import cc.ryanc.halo.model.domain.Category;
 import cc.ryanc.halo.model.dto.JsonResult;
-import cc.ryanc.halo.model.enums.ResultCodeEnum;
+import cc.ryanc.halo.model.enums.ResultCode;
 import cc.ryanc.halo.service.CategoryService;
 import cc.ryanc.halo.utils.LocaleMessageUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -69,9 +69,9 @@ public class CategoryController {
     public JsonResult checkCateUrlExists(@RequestParam("cateUrl") String cateUrl) {
         Category category = categoryService.findByCateUrl(cateUrl);
         if (null != category) {
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.url-is-exists"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.url-is-exists"));
         }
-        return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), "");
+        return new JsonResult(ResultCode.SUCCESS.getCode(), "");
     }
 
     /**

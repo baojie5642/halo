@@ -8,7 +8,7 @@ package cc.ryanc.halo.model.enums;
  * @author : RYAN0UP
  * @date : 2018/7/14
  */
-public enum ResultCodeEnum {
+public enum ResultCode {
 
     /**
      * 成功
@@ -22,7 +22,7 @@ public enum ResultCodeEnum {
 
     Integer code;
 
-    ResultCodeEnum(Integer code) {
+    ResultCode(Integer code) {
         this.code = code;
     }
 

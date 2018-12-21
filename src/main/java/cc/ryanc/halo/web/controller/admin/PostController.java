@@ -5,10 +5,10 @@ import cc.ryanc.halo.model.domain.User;
 import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.JsonResult;
 import cc.ryanc.halo.model.dto.LogsRecord;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
-import cc.ryanc.halo.model.enums.PostStatusEnum;
-import cc.ryanc.halo.model.enums.PostTypeEnum;
-import cc.ryanc.halo.model.enums.ResultCodeEnum;
+import cc.ryanc.halo.model.enums.BlogProperties;
+import cc.ryanc.halo.model.enums.PostStatus;
+import cc.ryanc.halo.model.enums.PostType;
+import cc.ryanc.halo.model.enums.ResultCode;
 import cc.ryanc.halo.service.LogsService;
 import cc.ryanc.halo.service.PostService;
 import cc.ryanc.halo.utils.HaloUtils;
@@ -94,11 +94,11 @@ public class PostController extends BaseController {
                         @RequestParam(value = "size", defaultValue = "10") Integer size) {
         Sort sort = new Sort(Sort.Direction.DESC, "postDate");
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Post> posts = postService.findPostByStatus(status, PostTypeEnum.POST_TYPE_POST.getDesc(), pageable);
+        Page<Post> posts = postService.findPostByStatus(status, PostType.POST_TYPE_POST.getDesc(), pageable);
         model.addAttribute("posts", posts);
-        model.addAttribute("publishCount", postService.getCountByStatus(PostStatusEnum.PUBLISHED.getCode()));
-        model.addAttribute("draftCount", postService.getCountByStatus(PostStatusEnum.DRAFT.getCode()));
-        model.addAttribute("trashCount", postService.getCountByStatus(PostStatusEnum.RECYCLE.getCode()));
+        model.addAttribute("publishCount", postService.getCountByStatus(PostStatus.PUBLISHED.getCode()));
+        model.addAttribute("draftCount", postService.getCountByStatus(PostStatus.DRAFT.getCode()));
+        model.addAttribute("trashCount", postService.getCountByStatus(PostStatus.RECYCLE.getCode()));
         model.addAttribute("status", status);
         return "admin/admin_post";
     }
@@ -185,8 +185,8 @@ public class PostController extends BaseController {
             post.setPostContent(MarkdownUtils.renderMarkdown(post.getPostContentMd()));
             //摘要字数
             int postSummary = 50;
-            if (StrUtil.isNotEmpty(HaloConst.OPTIONS.get(BlogPropertiesEnum.POST_SUMMARY.getProp()))) {
-                postSummary = Integer.parseInt(HaloConst.OPTIONS.get(BlogPropertiesEnum.POST_SUMMARY.getProp()));
+            if (StrUtil.isNotEmpty(HaloConst.OPTIONS.get(BlogProperties.POST_SUMMARY.getProp()))) {
+                postSummary = Integer.parseInt(HaloConst.OPTIONS.get(BlogProperties.POST_SUMMARY.getProp()));
             }
             //设置文章摘要
             String summaryText = StrUtil.cleanBlank(HtmlUtil.cleanHtmlTag(post.getPostContent()));
@@ -203,16 +203,16 @@ public class PostController extends BaseController {
             post = postService.buildCategoriesAndTags(post, cateList, tagList);
             post.setPostUrl(urlFilter(post.getPostUrl()));
             //当没有选择文章缩略图的时候，自动分配一张内置的缩略图
-            if (StrUtil.equals(post.getPostThumbnail(), BlogPropertiesEnum.DEFAULT_THUMBNAIL.getProp())) {
+            if (StrUtil.equals(post.getPostThumbnail(), BlogProperties.DEFAULT_THUMBNAIL.getProp())) {
                 post.setPostThumbnail("/static/images/thumbnail/thumbnail-" + RandomUtil.randomInt(1, 10) + ".jpg");
             }
             postService.save(post);
             logsService.save(LogsRecord.PUSH_POST, post.getPostTitle(), request);
-            return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.save-success"));
+            return new JsonResult(ResultCode.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.save-success"));
         } catch (Exception e) {
             log.error("Save article failed: {}", e.getMessage());
             e.printStackTrace();
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.save-failed"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.save-failed"));
         }
     }
 
@@ -241,8 +241,8 @@ public class PostController extends BaseController {
         }
         //摘要字数
         int postSummary = 50;
-        if (StrUtil.isNotEmpty(HaloConst.OPTIONS.get(BlogPropertiesEnum.POST_SUMMARY.getProp()))) {
-            postSummary = Integer.parseInt(HaloConst.OPTIONS.get(BlogPropertiesEnum.POST_SUMMARY.getProp()));
+        if (StrUtil.isNotEmpty(HaloConst.OPTIONS.get(BlogProperties.POST_SUMMARY.getProp()))) {
+            postSummary = Integer.parseInt(HaloConst.OPTIONS.get(BlogProperties.POST_SUMMARY.getProp()));
         }
         //设置文章摘要
         String summaryText = StrUtil.cleanBlank(HtmlUtil.cleanHtmlTag(post.getPostContent()));
@@ -255,9 +255,9 @@ public class PostController extends BaseController {
         post = postService.buildCategoriesAndTags(post, cateList, tagList);
         post = postService.save(post);
         if (null != post) {
-            return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.update-success"));
+            return new JsonResult(ResultCode.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.update-success"));
         } else {
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.update-failed"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.update-failed"));
         }
     }
 
@@ -270,7 +270,7 @@ public class PostController extends BaseController {
     @GetMapping(value = "/throw")
     public String moveToTrash(@RequestParam("postId") Long postId, @RequestParam("status") Integer status) {
         try {
-            postService.updatePostStatus(postId, PostStatusEnum.RECYCLE.getCode());
+            postService.updatePostStatus(postId, PostStatus.RECYCLE.getCode());
             log.info("Article number {} has been moved to the recycle bin", postId);
         } catch (Exception e) {
             log.error("Deleting article to recycle bin failed: {}", e.getMessage());
@@ -288,7 +288,7 @@ public class PostController extends BaseController {
     public String moveToPublish(@RequestParam("postId") Long postId,
                                 @RequestParam("status") Integer status) {
         try {
-            postService.updatePostStatus(postId, PostStatusEnum.PUBLISHED.getCode());
+            postService.updatePostStatus(postId, PostStatus.PUBLISHED.getCode());
             log.info("Article number {} has been changed to release status", postId);
         } catch (Exception e) {
             log.error("Publishing article failed: {}", e.getMessage());
@@ -311,7 +311,7 @@ public class PostController extends BaseController {
         } catch (Exception e) {
             log.error("Delete article failed: {}", e.getMessage());
         }
-        if (StrUtil.equals(PostTypeEnum.POST_TYPE_POST.getDesc(), postType)) {
+        if (StrUtil.equals(PostType.POST_TYPE_POST.getDesc(), postType)) {
             return "redirect:/admin/posts?status=2";
         }
         return "redirect:/admin/page";
@@ -331,9 +331,9 @@ public class PostController extends BaseController {
         } catch (Exception e) {
             log.error("Update summary failed: {}", e.getMessage());
             e.printStackTrace();
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.update-failed"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.update-failed"));
         }
-        return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.update-success"));
+        return new JsonResult(ResultCode.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.update-success"));
     }
 
     /**
@@ -346,11 +346,11 @@ public class PostController extends BaseController {
     @ResponseBody
     public JsonResult checkUrlExists(@RequestParam("postUrl") String postUrl) {
         postUrl = urlFilter(postUrl);
-        Post post = postService.findByPostUrl(postUrl, PostTypeEnum.POST_TYPE_POST.getDesc());
+        Post post = postService.findByPostUrl(postUrl, PostType.POST_TYPE_POST.getDesc());
         if (null != post) {
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.url-is-exists"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.url-is-exists"));
         }
-        return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), "");
+        return new JsonResult(ResultCode.SUCCESS.getCode(), "");
     }
 
     /**
@@ -363,10 +363,10 @@ public class PostController extends BaseController {
     @ResponseBody
     public JsonResult pushAllToBaidu(@RequestParam("baiduToken") String baiduToken) {
         if (StrUtil.isBlank(baiduToken)) {
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.post.no-baidu-token"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.post.no-baidu-token"));
         }
-        String blogUrl = HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp());
-        List<Post> posts = postService.findAll(PostTypeEnum.POST_TYPE_POST.getDesc());
+        String blogUrl = HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp());
+        List<Post> posts = postService.findAll(PostType.POST_TYPE_POST.getDesc());
         StringBuilder urls = new StringBuilder();
         for (Post post : posts) {
             urls.append(blogUrl);
@@ -376,9 +376,9 @@ public class PostController extends BaseController {
         }
         String result = HaloUtils.baiduPost(blogUrl, baiduToken, urls.toString());
         if (StrUtil.isEmpty(result)) {
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.post.push-to-baidu-failed"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.post.push-to-baidu-failed"));
         }
-        return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.post.push-to-baidu-success"));
+        return new JsonResult(ResultCode.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.post.push-to-baidu-success"));
     }
 
     @InitBinder

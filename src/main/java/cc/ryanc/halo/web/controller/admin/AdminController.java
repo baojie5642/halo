@@ -8,6 +8,7 @@ import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.JsonResult;
 import cc.ryanc.halo.model.dto.LogsRecord;
 import cc.ryanc.halo.model.enums.*;
+import cc.ryanc.halo.model.enums.ResponseStatus;
 import cc.ryanc.halo.service.*;
 import cc.ryanc.halo.utils.LocaleMessageUtil;
 import cc.ryanc.halo.web.controller.core.BaseController;
@@ -71,41 +72,66 @@ public class AdminController extends BaseController {
     /**
      * 请求后台页面
      *
-     * @param model   model
-     * @param session session
+     * @param model model
+     * @param
      * @return 模板路径admin/admin_index
      */
     @GetMapping(value = {"", "/index"})
     public String index(Model model) {
+        if (null == model) {
+            throw new NullPointerException();
+        } else {
+            commentCount(model);
+            postsLatest(model);
+            logsLatest(model);
+            comments(model);
+            mediaCount(model);
+            postViewsSum(model);
+            hadDays(model);
+        }
+        return "admin/admin_index";
+    }
 
+    private final void commentCount(Model model) {
         //查询评论的条数
         Long commentCount = commentService.getCount();
         model.addAttribute("commentCount", commentCount);
+    }
 
+    private final void postsLatest(Model model) {
         //查询最新的文章
         List<Post> postsLatest = postService.findPostLatest();
         model.addAttribute("postTopFive", postsLatest);
+    }
 
+    private final void logsLatest(Model model) {
         //查询最新的日志
         List<Logs> logsLatest = logsService.findLogsLatest();
         model.addAttribute("logs", logsLatest);
+    }
 
+    private final void comments(Model model) {
         //查询最新的评论
         List<Comment> comments = commentService.findCommentsLatest();
         model.addAttribute("comments", comments);
+    }
 
+    private final void mediaCount(Model model) {
         //附件数量
         model.addAttribute("mediaCount", attachmentService.getCount());
+    }
 
+    private final void postViewsSum(Model model) {
         //文章阅读总数
         Long postViewsSum = postService.getPostViews();
         model.addAttribute("postViewsSum", postViewsSum);
+    }
 
+    private final void hadDays(Model model) {
         //成立天数
-        Date blogStart = DateUtil.parse(HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_START.getProp()));
+        Date blogStart = DateUtil.parse(HaloConst.OPTIONS.get(BlogProperties.BLOG_START.getProp()));
         long hadDays = DateUtil.between(blogStart, DateUtil.date(), DateUnit.DAY);
-        model.addAttribute("hadDays",hadDays);
-        return "admin/admin_index";
+        model.addAttribute("hadDays", hadDays);
     }
 
     /**
@@ -135,18 +161,17 @@ public class AdminController extends BaseController {
     @PostMapping(value = "/getLogin")
     @ResponseBody
     public JsonResult getLogin(@ModelAttribute("loginName") String loginName,
-                               @ModelAttribute("loginPwd") String loginPwd,
-                               HttpSession session) {
+            @ModelAttribute("loginPwd") String loginPwd,
+            HttpSession session) {
         //已注册账号，单用户，只有一个
         User aUser = userService.findUser();
-        //首先判断是否已经被禁用已经是否已经过了10分钟
-        Date loginLast = DateUtil.date();
-        if (null != aUser.getLoginLast()) {
-            loginLast = aUser.getLoginLast();
+        if (null == aUser) {
+            return new JsonResult(ResultCode.FAIL.getCode(),
+                    localeMessageUtil.getMessage("code.admin.user.notexist"));
         }
-        Long between = DateUtil.between(loginLast, DateUtil.date(), DateUnit.MINUTE);
-        if (StrUtil.equals(aUser.getLoginEnable(), TrueFalseEnum.FALSE.getDesc()) && (between < CommonParamsEnum.TEN.getValue())) {
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.login.disabled"));
+        if (forbiden(aUser)) {
+            return new JsonResult(ResultCode.FAIL.getCode(),
+                    localeMessageUtil.getMessage("code.admin.login.disabled"));
         }
         //验证用户名和密码
         User user = null;
@@ -163,19 +188,51 @@ public class AdminController extends BaseController {
             userService.updateUserNormal();
             logsService.save(LogsRecord.LOGIN, LogsRecord.LOGIN_SUCCESS, request);
             log.info("User {} login succeeded.", aUser.getUserDisplayName());
-            return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.login.success"));
+            return new JsonResult(ResultCode.SUCCESS.getCode(),
+                    localeMessageUtil.getMessage("code.admin.login.success"));
         } else {
             //更新失败次数
             Integer errorCount = userService.updateUserLoginError();
             //超过五次禁用账户
-            if (errorCount >= CommonParamsEnum.FIVE.getValue()) {
-                userService.updateUserLoginEnable(TrueFalseEnum.FALSE.getDesc());
+            if (errorCount >= CommonParams.FIVE.getValue()) {
+                userService.updateUserLoginEnable(TrueFalse.FALSE.getDesc());
             }
-            logsService.save(LogsRecord.LOGIN, LogsRecord.LOGIN_ERROR + "[" + HtmlUtil.escape(loginName) + "," + HtmlUtil.escape(loginPwd) + "]", request);
+            logsService.save(LogsRecord.LOGIN,
+                    LogsRecord.LOGIN_ERROR + "[" + HtmlUtil.escape(loginName) + "," + HtmlUtil.escape(loginPwd) + "]",
+                    request);
             Object[] args = {(5 - errorCount)};
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.login.failed", args));
+            return new JsonResult(ResultCode.FAIL.getCode(),
+                    localeMessageUtil.getMessage("code.admin.login.failed", args));
         }
     }
+
+    private boolean forbiden(User user) {
+        Date last = lastLogin(user);
+        long between = between(last);
+        // 只有下面两个条件都不成立时才被禁止
+        //首先判断是否已经被禁用已经是否已经过了10分钟
+        if (StrUtil.equals(user.getLoginEnable(), TrueFalse.TRUE.getDesc())) {
+            return false;
+        } else if (between >= CommonParams.TEN.getValue()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private Date lastLogin(User aUser) {
+        Date last = aUser.getLoginLast();
+        if (null != last) {
+            return last;
+        } else {
+            return DateUtil.date();
+        }
+    }
+
+    private long between(Date last) {
+        return DateUtil.between(last, DateUtil.date(), DateUnit.MINUTE);
+    }
+
 
     /**
      * 退出登录 销毁session
@@ -202,8 +259,8 @@ public class AdminController extends BaseController {
      */
     @GetMapping(value = "/logs")
     public String logs(Model model,
-                       @RequestParam(value = "page", defaultValue = "0") Integer page,
-                       @RequestParam(value = "size", defaultValue = "10") Integer size) {
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
         Sort sort = new Sort(Sort.Direction.DESC, "logId");
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<Logs> logs = logsService.findAll(pageable);
@@ -245,6 +302,7 @@ public class AdminController extends BaseController {
     @ResponseBody
     public JsonResult getToken() {
         String token = (System.currentTimeMillis() + new Random().nextInt(999999999)) + "";
-        return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), SecureUtil.md5(token));
+        return new JsonResult(ResultCode.SUCCESS.getCode(), ResponseStatus.SUCCESS.getMsg(),
+                SecureUtil.md5(token));
     }
 }

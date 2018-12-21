@@ -2,7 +2,7 @@ package cc.ryanc.halo.web.controller.admin;
 
 import cc.ryanc.halo.model.domain.Tag;
 import cc.ryanc.halo.model.dto.JsonResult;
-import cc.ryanc.halo.model.enums.ResultCodeEnum;
+import cc.ryanc.halo.model.enums.ResultCode;
 import cc.ryanc.halo.service.TagService;
 import cc.ryanc.halo.utils.LocaleMessageUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -67,9 +67,9 @@ public class TagController {
     public JsonResult checkTagUrlExists(@RequestParam("tagUrl") String tagUrl) {
         Tag tag = tagService.findByTagUrl(tagUrl);
         if (null != tag) {
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.url-is-exists"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.url-is-exists"));
         }
-        return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), "");
+        return new JsonResult(ResultCode.SUCCESS.getCode(), "");
     }
 
     /**

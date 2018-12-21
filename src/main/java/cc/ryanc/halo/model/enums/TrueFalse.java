@@ -8,7 +8,7 @@ package cc.ryanc.halo.model.enums;
  * @author : RYAN0UP
  * @date : 2018/7/16
  */
-public enum TrueFalseEnum {
+public enum TrueFalse {
 
     /**
      * 真
@@ -22,7 +22,7 @@ public enum TrueFalseEnum {
 
     private String desc;
 
-    TrueFalseEnum(String desc) {
+    TrueFalse(String desc) {
         this.desc = desc;
     }
 

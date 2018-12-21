@@ -2,7 +2,7 @@ package cc.ryanc.halo.web.controller.front;
 
 import cc.ryanc.halo.model.domain.Post;
 import cc.ryanc.halo.model.dto.HaloConst;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
+import cc.ryanc.halo.model.enums.BlogProperties;
 import cc.ryanc.halo.service.PostService;
 import cc.ryanc.halo.web.controller.core.BaseController;
 import cn.hutool.core.util.PageUtil;
@@ -64,8 +64,8 @@ public class FrontIndexController extends BaseController {
         //默认显示10条
         int size = 10;
         //尝试加载设置选项，用于设置显示条数
-        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()))) {
-            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()));
+        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogProperties.INDEX_POSTS.getProp()))) {
+            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogProperties.INDEX_POSTS.getProp()));
         }
         //所有文章数据，分页
         Pageable pageable = PageRequest.of(page - 1, size, sort);

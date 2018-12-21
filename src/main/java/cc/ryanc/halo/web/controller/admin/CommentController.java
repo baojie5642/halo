@@ -73,9 +73,9 @@ public class CommentController extends BaseController {
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<Comment> comments = commentService.findAll(status,pageable);
         model.addAttribute("comments", comments);
-        model.addAttribute("publicCount", commentService.getCountByStatus(CommentStatusEnum.PUBLISHED.getCode()));
-        model.addAttribute("checkCount", commentService.getCountByStatus(CommentStatusEnum.CHECKING.getCode()));
-        model.addAttribute("trashCount", commentService.getCountByStatus(CommentStatusEnum.RECYCLE.getCode()));
+        model.addAttribute("publicCount", commentService.getCountByStatus(CommentStatus.PUBLISHED.getCode()));
+        model.addAttribute("checkCount", commentService.getCountByStatus(CommentStatus.CHECKING.getCode()));
+        model.addAttribute("trashCount", commentService.getCountByStatus(CommentStatus.RECYCLE.getCode()));
         model.addAttribute("status", status);
         return "admin/admin_comment";
     }
@@ -92,7 +92,7 @@ public class CommentController extends BaseController {
                               @RequestParam("status") String status,
                               @RequestParam(value = "page", defaultValue = "0") Integer page) {
         try {
-            commentService.updateCommentStatus(commentId, CommentStatusEnum.RECYCLE.getCode());
+            commentService.updateCommentStatus(commentId, CommentStatus.RECYCLE.getCode());
         } catch (Exception e) {
             log.error("Delete comment failed: {}", e.getMessage());
         }
@@ -111,7 +111,7 @@ public class CommentController extends BaseController {
     public String moveToPublish(@RequestParam("commentId") Long commentId,
                                 @RequestParam("status") Integer status,
                                 HttpSession session) {
-        Comment comment = commentService.updateCommentStatus(commentId, CommentStatusEnum.PUBLISHED.getCode());
+        Comment comment = commentService.updateCommentStatus(commentId, CommentStatus.PUBLISHED.getCode());
         Post post = comment.getPost();
         User user = (User) session.getAttribute(HaloConst.USER_SESSION_KEY);
 
@@ -166,7 +166,7 @@ public class CommentController extends BaseController {
             Comment lastComment = commentService.findCommentById(commentId).orElse(new Comment());
 
             //修改被回复的评论的状态
-            lastComment.setCommentStatus(CommentStatusEnum.PUBLISHED.getCode());
+            lastComment.setCommentStatus(CommentStatus.PUBLISHED.getCode());
             commentService.save(lastComment);
 
             //保存评论
@@ -174,7 +174,7 @@ public class CommentController extends BaseController {
             comment.setPost(post);
             comment.setCommentAuthor(user.getUserDisplayName());
             comment.setCommentAuthorEmail(user.getUserEmail());
-            comment.setCommentAuthorUrl(HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp()));
+            comment.setCommentAuthorUrl(HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp()));
             comment.setCommentAuthorIp(ServletUtil.getClientIP(request));
             comment.setCommentAuthorAvatarMd5(SecureUtil.md5(user.getUserEmail()));
             comment.setCommentDate(DateUtil.date());
@@ -189,16 +189,16 @@ public class CommentController extends BaseController {
             comment.setCommentContent(buildContent.toString());
             comment.setCommentAgent(userAgent);
             comment.setCommentParent(commentId);
-            comment.setCommentStatus(CommentStatusEnum.PUBLISHED.getCode());
+            comment.setCommentStatus(CommentStatus.PUBLISHED.getCode());
             comment.setIsAdmin(1);
             commentService.save(comment);
 
             //邮件通知
             new EmailToAuthor(comment, lastComment, post, user, commentContent).start();
-            return new JsonResult(ResultCodeEnum.SUCCESS.getCode());
+            return new JsonResult(ResultCode.SUCCESS.getCode());
         } catch (Exception e) {
             log.error("Reply to comment failed: {}", e.getMessage());
-            return new JsonResult(ResultCodeEnum.FAIL.getCode());
+            return new JsonResult(ResultCode.FAIL.getCode());
         }
     }
 
@@ -223,15 +223,16 @@ public class CommentController extends BaseController {
 
         @Override
         public void run() {
-            if (StrUtil.equals(HaloConst.OPTIONS.get(BlogPropertiesEnum.SMTP_EMAIL_ENABLE.getProp()), TrueFalseEnum.TRUE.getDesc()) && StrUtil.equals(HaloConst.OPTIONS.get(BlogPropertiesEnum.COMMENT_REPLY_NOTICE.getProp()), TrueFalseEnum.TRUE.getDesc())) {
+            if (StrUtil.equals(HaloConst.OPTIONS.get(BlogProperties.SMTP_EMAIL_ENABLE.getProp()), TrueFalse.TRUE.getDesc()) && StrUtil.equals(HaloConst.OPTIONS.get(
+                    BlogProperties.COMMENT_REPLY_NOTICE.getProp()), TrueFalse.TRUE.getDesc())) {
                 if (Validator.isEmail(lastComment.getCommentAuthorEmail())) {
                     Map<String, Object> map = new HashMap<>(8);
-                    map.put("blogTitle", HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_TITLE.getProp()));
+                    map.put("blogTitle", HaloConst.OPTIONS.get(BlogProperties.BLOG_TITLE.getProp()));
                     map.put("commentAuthor", lastComment.getCommentAuthor());
                     map.put("pageName", lastComment.getPost().getPostTitle());
 
-                    StrBuilder pageUrl = new StrBuilder(HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp()));
-                    if (StrUtil.equals(post.getPostType(), PostTypeEnum.POST_TYPE_POST.getDesc())) {
+                    StrBuilder pageUrl = new StrBuilder(HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp()));
+                    if (StrUtil.equals(post.getPostType(), PostType.POST_TYPE_POST.getDesc())) {
                         pageUrl.append("/archives/");
                     } else {
                         pageUrl.append("/p/");
@@ -244,9 +245,9 @@ public class CommentController extends BaseController {
                     map.put("commentContent", lastComment.getCommentContent());
                     map.put("replyAuthor", user.getUserDisplayName());
                     map.put("replyContent", commentContent);
-                    map.put("blogUrl", HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp()));
+                    map.put("blogUrl", HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp()));
                     mailService.sendTemplateMail(
-                            lastComment.getCommentAuthorEmail(), "您在" + HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp()) + "的评论有了新回复", map, "common/mail_template/mail_reply.ftl");
+                            lastComment.getCommentAuthorEmail(), "您在" + HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp()) + "的评论有了新回复", map, "common/mail_template/mail_reply.ftl");
                 }
             }
         }
@@ -271,13 +272,14 @@ public class CommentController extends BaseController {
 
         @Override
         public void run() {
-            if (StrUtil.equals(HaloConst.OPTIONS.get(BlogPropertiesEnum.SMTP_EMAIL_ENABLE.getProp()), TrueFalseEnum.TRUE.getDesc()) && StrUtil.equals(HaloConst.OPTIONS.get(BlogPropertiesEnum.COMMENT_REPLY_NOTICE.getProp()), TrueFalseEnum.TRUE.getDesc())) {
+            if (StrUtil.equals(HaloConst.OPTIONS.get(BlogProperties.SMTP_EMAIL_ENABLE.getProp()), TrueFalse.TRUE.getDesc()) && StrUtil.equals(HaloConst.OPTIONS.get(
+                    BlogProperties.COMMENT_REPLY_NOTICE.getProp()), TrueFalse.TRUE.getDesc())) {
                 try {
                     if (status == 1 && Validator.isEmail(comment.getCommentAuthorEmail())) {
                         Map<String, Object> map = new HashMap<>(6);
 
-                        StrBuilder pageUrl = new StrBuilder(HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp()));
-                        if (StrUtil.equals(post.getPostType(), PostTypeEnum.POST_TYPE_POST.getDesc())) {
+                        StrBuilder pageUrl = new StrBuilder(HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp()));
+                        if (StrUtil.equals(post.getPostType(), PostType.POST_TYPE_POST.getDesc())) {
                             pageUrl.append("/archives/");
                         } else {
                             pageUrl.append("/p/");
@@ -289,12 +291,12 @@ public class CommentController extends BaseController {
                         map.put("pageUrl",pageUrl.toString());
                         map.put("pageName", post.getPostTitle());
                         map.put("commentContent", comment.getCommentContent());
-                        map.put("blogUrl", HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp()));
-                        map.put("blogTitle", HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_TITLE.getProp()));
+                        map.put("blogUrl", HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp()));
+                        map.put("blogTitle", HaloConst.OPTIONS.get(BlogProperties.BLOG_TITLE.getProp()));
                         map.put("author", user.getUserDisplayName());
                         mailService.sendTemplateMail(
                                 comment.getCommentAuthorEmail(),
-                                "您在" + HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp()) + "的评论已审核通过！", map, "common/mail_template/mail_passed.ftl");
+                                "您在" + HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp()) + "的评论已审核通过！", map, "common/mail_template/mail_passed.ftl");
                     }
                 } catch (Exception e) {
                     log.error("Mail server not configured: {}", e.getMessage());

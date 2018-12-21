@@ -2,7 +2,7 @@ package cc.ryanc.halo.web.controller.admin;
 
 import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.JsonResult;
-import cc.ryanc.halo.model.enums.ResultCodeEnum;
+import cc.ryanc.halo.model.enums.ResultCode;
 import cc.ryanc.halo.service.OptionsService;
 import cc.ryanc.halo.utils.LocaleMessageUtil;
 import freemarker.template.Configuration;
@@ -61,10 +61,10 @@ public class OptionController {
             HaloConst.OPTIONS.clear();
             HaloConst.OPTIONS = optionsService.findAllOptions();
             log.info("List of saved options: " + options);
-            return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.save-success"));
+            return new JsonResult(ResultCode.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.save-success"));
         } catch (Exception e) {
             log.error("Save settings option failed: {}", e.getMessage());
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.save-failed"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.save-failed"));
         }
     }
 }

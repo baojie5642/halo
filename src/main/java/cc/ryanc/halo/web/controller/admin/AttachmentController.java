@@ -3,8 +3,8 @@ package cc.ryanc.halo.web.controller.admin;
 import cc.ryanc.halo.model.domain.Attachment;
 import cc.ryanc.halo.model.dto.JsonResult;
 import cc.ryanc.halo.model.dto.LogsRecord;
-import cc.ryanc.halo.model.enums.PostTypeEnum;
-import cc.ryanc.halo.model.enums.ResultCodeEnum;
+import cc.ryanc.halo.model.enums.PostType;
+import cc.ryanc.halo.model.enums.ResultCode;
 import cc.ryanc.halo.service.AttachmentService;
 import cc.ryanc.halo.service.LogsService;
 import cc.ryanc.halo.utils.LocaleMessageUtil;
@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static cc.ryanc.halo.model.enums.AttachLocationEnum.*;
+import static cc.ryanc.halo.model.enums.AttachLocation.*;
 
 /**
  * <pre>
@@ -85,7 +85,7 @@ public class AttachmentController {
         Page<Attachment> attachments = attachmentService.findAll(pageable);
         model.addAttribute("attachments", attachments);
         model.addAttribute("id", id);
-        if (StrUtil.equals(type, PostTypeEnum.POST_TYPE_POST.getDesc())) {
+        if (StrUtil.equals(type, PostType.POST_TYPE_POST.getDesc())) {
             return "admin/widget/_attachment-select-post";
         }
         return "admin/widget/_attachment-select";
@@ -119,7 +119,7 @@ public class AttachmentController {
                 Map<String, String> resultMap = attachmentService.upload(file, request);
                 if (resultMap == null || resultMap.isEmpty()) {
                     log.error("File upload failed");
-                    result.put("success", ResultCodeEnum.FAIL.getCode());
+                    result.put("success", ResultCode.FAIL.getCode());
                     result.put("message", localeMessageUtil.getMessage("code.admin.attachment.upload-failed"));
                     return result;
                 }
@@ -136,14 +136,14 @@ public class AttachmentController {
                 attachment.setAttachLocation(resultMap.get("location"));
                 attachmentService.save(attachment);
                 log.info("Upload file {} to {} successfully", resultMap.get("fileName"), resultMap.get("filePath"));
-                result.put("success", ResultCodeEnum.SUCCESS.getCode());
+                result.put("success", ResultCode.SUCCESS.getCode());
                 result.put("message", localeMessageUtil.getMessage("code.admin.attachment.upload-success"));
                 result.put("url", attachment.getAttachPath());
                 result.put("filename", resultMap.get("filePath"));
                 logsService.save(LogsRecord.UPLOAD_FILE, resultMap.get("fileName"), request);
             } catch (Exception e) {
                 log.error("Upload file failed:{}", e.getMessage());
-                result.put("success", ResultCodeEnum.FAIL.getCode());
+                result.put("success", ResultCode.FAIL.getCode());
                 result.put("message", localeMessageUtil.getMessage("code.admin.attachment.upload-failed"));
             }
         } else {
@@ -214,13 +214,13 @@ public class AttachmentController {
                 logsService.save(LogsRecord.REMOVE_FILE, delFileName, request);
             } else {
                 log.error("Deleting attachment {} failed!", delFileName);
-                return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.delete-failed"));
+                return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.delete-failed"));
             }
         } catch (Exception e) {
             e.printStackTrace();
             log.error("Deleting attachment {} failed: {}", delFileName, e.getMessage());
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.delete-failed"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.delete-failed"));
         }
-        return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.delete-success"));
+        return new JsonResult(ResultCode.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.delete-success"));
     }
 }

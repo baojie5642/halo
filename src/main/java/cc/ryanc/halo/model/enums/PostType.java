@@ -8,7 +8,7 @@ package cc.ryanc.halo.model.enums;
  * @author : RYAN0UP
  * @date : 2018/7/1
  */
-public enum PostTypeEnum {
+public enum PostType {
 
     /**
      * 文章
@@ -22,7 +22,7 @@ public enum PostTypeEnum {
 
     private String desc;
 
-    PostTypeEnum(String desc) {
+    PostType(String desc) {
         this.desc = desc;
     }
 

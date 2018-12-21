@@ -8,7 +8,7 @@ package cc.ryanc.halo.model.enums;
  * @author : RYAN0UP
  * @date : 2018/7/14
  */
-public enum BlogPropertiesEnum {
+public enum BlogProperties {
 
     /**
      * 博客语言
@@ -157,7 +157,7 @@ public enum BlogPropertiesEnum {
 
     private String prop;
 
-    BlogPropertiesEnum(String prop) {
+    BlogProperties(String prop) {
         this.prop = prop;
     }
 

@@ -4,8 +4,8 @@ import cc.ryanc.halo.model.domain.Post;
 import cc.ryanc.halo.model.dto.BackupDto;
 import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.Theme;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
-import cc.ryanc.halo.model.enums.CommonParamsEnum;
+import cc.ryanc.halo.model.enums.BlogProperties;
+import cc.ryanc.halo.model.enums.CommonParams;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.StrBuilder;
@@ -85,17 +85,17 @@ public class HaloUtils {
      * @return String
      */
     public static String parseSize(long size) {
-        if (size < CommonParamsEnum.BYTE.getValue()) {
+        if (size < CommonParams.BYTE.getValue()) {
             return String.valueOf(size) + "B";
         } else {
             size = size / 1024;
         }
-        if (size < CommonParamsEnum.BYTE.getValue()) {
+        if (size < CommonParams.BYTE.getValue()) {
             return String.valueOf(size) + "KB";
         } else {
             size = size / 1024;
         }
-        if (size < CommonParamsEnum.BYTE.getValue()) {
+        if (size < CommonParams.BYTE.getValue()) {
             size = size * 100;
             return String.valueOf((size / 100)) + "." + String.valueOf((size % 100)) + "MB";
         } else {
@@ -291,20 +291,20 @@ public class HaloUtils {
         Assert.notEmpty(posts, "posts must not be empty");
 
         Channel channel = new Channel("rss_2.0");
-        if (null == HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_TITLE.getProp())) {
+        if (null == HaloConst.OPTIONS.get(BlogProperties.BLOG_TITLE.getProp())) {
             channel.setTitle("");
         } else {
-            channel.setTitle(HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_TITLE.getProp()));
+            channel.setTitle(HaloConst.OPTIONS.get(BlogProperties.BLOG_TITLE.getProp()));
         }
-        if (null == HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp())) {
+        if (null == HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp())) {
             channel.setLink("");
         } else {
-            channel.setLink(HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp()));
+            channel.setLink(HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp()));
         }
-        if (null == HaloConst.OPTIONS.get(BlogPropertiesEnum.SEO_DESC.getProp())) {
+        if (null == HaloConst.OPTIONS.get(BlogProperties.SEO_DESC.getProp())) {
             channel.setDescription("");
         } else {
-            channel.setDescription(HaloConst.OPTIONS.get(BlogPropertiesEnum.SEO_DESC.getProp()));
+            channel.setDescription(HaloConst.OPTIONS.get(BlogProperties.SEO_DESC.getProp()));
         }
         channel.setLanguage("zh-CN");
         List<Item> items = new ArrayList<>();
@@ -325,7 +325,7 @@ public class HaloUtils {
             content.setValue(value);
             item.setContent(content);
             item.setLink(
-                    HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp()) + "/archives/" + post.getPostUrl());
+                    HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp()) + "/archives/" + post.getPostUrl());
             item.setPubDate(post.getPostDate());
             items.add(item);
         }
@@ -344,7 +344,7 @@ public class HaloUtils {
         Assert.notEmpty(posts, "post mut not be empty");
         StrBuilder head = new StrBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
         StrBuilder urlBody = new StrBuilder();
-        String urlPath = HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp()) + "/archives/";
+        String urlPath = HaloConst.OPTIONS.get(BlogProperties.BLOG_URL.getProp()) + "/archives/";
         for (Post post : posts) {
             urlBody.append("<url><loc>");
             urlBody.append(urlPath);

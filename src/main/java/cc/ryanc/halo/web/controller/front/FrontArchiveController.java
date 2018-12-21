@@ -74,7 +74,7 @@ public class FrontArchiveController extends BaseController {
         //所有文章数据，分页，material主题适用
         Sort sort = new Sort(Sort.Direction.DESC, "postDate");
         Pageable pageable = PageRequest.of(page - 1, 5, sort);
-        Page<Post> posts = postService.findPostByStatus(PostStatusEnum.PUBLISHED.getCode(), PostTypeEnum.POST_TYPE_POST.getDesc(), pageable);
+        Page<Post> posts = postService.findPostByStatus(PostStatus.PUBLISHED.getCode(), PostType.POST_TYPE_POST.getDesc(), pageable);
         if (null == posts) {
             return this.renderNotFound();
         }
@@ -115,8 +115,8 @@ public class FrontArchiveController extends BaseController {
     public String getPost(@PathVariable String postUrl,
                           @RequestParam(value = "cp", defaultValue = "1") Integer cp,
                           Model model) {
-        Post post = postService.findByPostUrl(postUrl, PostTypeEnum.POST_TYPE_POST.getDesc());
-        if (null == post || !post.getPostStatus().equals(PostStatusEnum.PUBLISHED.getCode())) {
+        Post post = postService.findByPostUrl(postUrl, PostType.POST_TYPE_POST.getDesc());
+        if (null == post || !post.getPostStatus().equals(PostStatus.PUBLISHED.getCode())) {
             return this.renderNotFound();
         }
         //获得当前文章的发布日期
@@ -133,10 +133,11 @@ public class FrontArchiveController extends BaseController {
             model.addAttribute("afterPost", afterPosts.get(afterPosts.size() - 1));
         }
         List<Comment> comments = null;
-        if (StrUtil.equals(HaloConst.OPTIONS.get(BlogPropertiesEnum.NEW_COMMENT_NEED_CHECK.getProp()), TrueFalseEnum.TRUE.getDesc()) || HaloConst.OPTIONS.get(BlogPropertiesEnum.NEW_COMMENT_NEED_CHECK.getProp()) == null) {
-            comments = commentService.findCommentsByPostAndCommentStatus(post, CommentStatusEnum.PUBLISHED.getCode());
+        if (StrUtil.equals(HaloConst.OPTIONS.get(BlogProperties.NEW_COMMENT_NEED_CHECK.getProp()), TrueFalse.TRUE.getDesc()) || HaloConst.OPTIONS.get(
+                BlogProperties.NEW_COMMENT_NEED_CHECK.getProp()) == null) {
+            comments = commentService.findCommentsByPostAndCommentStatus(post, CommentStatus.PUBLISHED.getCode());
         } else {
-            comments = commentService.findCommentsByPostAndCommentStatusNot(post, CommentStatusEnum.RECYCLE.getCode());
+            comments = commentService.findCommentsByPostAndCommentStatusNot(post, CommentStatus.RECYCLE.getCode());
         }
         //获取文章的标签用作keywords
         List<Tag> tags = post.getTags();
@@ -149,8 +150,8 @@ public class FrontArchiveController extends BaseController {
         //默认显示10条
         Integer size = 10;
         //获取每页评论条数
-        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_COMMENTS.getProp()))) {
-            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_COMMENTS.getProp()));
+        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogProperties.INDEX_COMMENTS.getProp()))) {
+            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogProperties.INDEX_COMMENTS.getProp()));
         }
         //评论分页
         ListPage<Comment> commentsPage = new ListPage<Comment>(CommentUtil.getComments(comments), cp, size);

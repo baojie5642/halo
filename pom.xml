@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.1.0.RELEASE</version>
+		<version>2.1.1.RELEASE</version>
 		<relativePath/>
 	</parent>
 
@@ -31,15 +31,15 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
-		<oh-my-email.version>0.0.3</oh-my-email.version>
-		<lombok.version>1.18.2</lombok.version>
-		<ehcache.version>3.6.0</ehcache.version>
+		<oh-my-email.version>0.0.4</oh-my-email.version>
+		<lombok.version>1.18.4</lombok.version>
+		<ehcache.version>3.6.2</ehcache.version>
 		<rome.version>1.0</rome.version>
-		<hutool-all.version>4.2.1</hutool-all.version>
+		<hutool-all.version>4.3.1</hutool-all.version>
 		<upyun-java-sdk.version>4.0.1</upyun-java-sdk.version>
-		<qiniu-java-sdk.version>7.2.14</qiniu-java-sdk.version>
+		<qiniu-java-sdk.version>7.2.18</qiniu-java-sdk.version>
 		<thumbnailator.version>0.4.8</thumbnailator.version>
-		<jaxb-api.version>2.3.0</jaxb-api.version>
+		<jaxb-api.version>2.3.1</jaxb-api.version>
 		<commonmark.version>0.12.1</commonmark.version>
 	</properties>
 
@@ -72,6 +72,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<!-- vertx-->
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-jdbc-client</artifactId>
+			<version>3.6.2</version>
 		</dependency>
 
 		<!-- mysql-->

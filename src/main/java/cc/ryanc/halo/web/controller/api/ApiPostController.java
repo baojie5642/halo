@@ -3,10 +3,10 @@ package cc.ryanc.halo.web.controller.api;
 import cc.ryanc.halo.model.domain.Post;
 import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.JsonResult;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
-import cc.ryanc.halo.model.enums.PostStatusEnum;
-import cc.ryanc.halo.model.enums.PostTypeEnum;
-import cc.ryanc.halo.model.enums.ResponseStatusEnum;
+import cc.ryanc.halo.model.enums.BlogProperties;
+import cc.ryanc.halo.model.enums.PostStatus;
+import cc.ryanc.halo.model.enums.PostType;
+import cc.ryanc.halo.model.enums.ResponseStatus;
 import cc.ryanc.halo.service.PostService;
 import cn.hutool.core.util.StrUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,15 +101,15 @@ public class ApiPostController {
     public JsonResult posts(@PathVariable(value = "page") Integer page) {
         Sort sort = new Sort(Sort.Direction.DESC, "postDate");
         int size = 10;
-        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()))) {
-            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()));
+        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogProperties.INDEX_POSTS.getProp()))) {
+            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogProperties.INDEX_POSTS.getProp()));
         }
         Pageable pageable = PageRequest.of(page - 1, size, sort);
-        Page<Post> posts = postService.findPostByStatus(PostStatusEnum.PUBLISHED.getCode(), PostTypeEnum.POST_TYPE_POST.getDesc(), pageable);
+        Page<Post> posts = postService.findPostByStatus(PostStatus.PUBLISHED.getCode(), PostType.POST_TYPE_POST.getDesc(), pageable);
         if (null == posts) {
-            return new JsonResult(ResponseStatusEnum.EMPTY.getCode(), ResponseStatusEnum.EMPTY.getMsg());
+            return new JsonResult(ResponseStatus.EMPTY.getCode(), ResponseStatus.EMPTY.getMsg());
         }
-        return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), posts);
+        return new JsonResult(ResponseStatus.SUCCESS.getCode(), ResponseStatus.SUCCESS.getMsg(), posts);
     }
 
     /**
@@ -150,12 +150,12 @@ public class ApiPostController {
      */
     @GetMapping(value = "/{postId}")
     public JsonResult posts(@PathVariable(value = "postId") Long postId) {
-        Post post = postService.findByPostId(postId, PostTypeEnum.POST_TYPE_POST.getDesc());
+        Post post = postService.findByPostId(postId, PostType.POST_TYPE_POST.getDesc());
         if (null != post) {
             postService.cacheViews(post.getPostId());
-            return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), post);
+            return new JsonResult(ResponseStatus.SUCCESS.getCode(), ResponseStatus.SUCCESS.getMsg(), post);
         } else {
-            return new JsonResult(ResponseStatusEnum.NOTFOUND.getCode(), ResponseStatusEnum.NOTFOUND.getMsg());
+            return new JsonResult(ResponseStatus.NOTFOUND.getCode(), ResponseStatus.NOTFOUND.getMsg());
         }
     }
 }

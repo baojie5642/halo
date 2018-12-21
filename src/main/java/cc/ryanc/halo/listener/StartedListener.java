@@ -2,7 +2,7 @@ package cc.ryanc.halo.listener;
 
 import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.Theme;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
+import cc.ryanc.halo.model.enums.BlogProperties;
 import cc.ryanc.halo.service.OptionsService;
 import cc.ryanc.halo.utils.HaloUtils;
 import cc.ryanc.halo.web.controller.core.BaseController;
@@ -31,22 +31,25 @@ import java.util.Map;
 @Configuration
 public class StartedListener implements ApplicationListener<ApplicationStartedEvent> {
 
-    @Autowired
-    private OptionsService optionsService;
+    private final OptionsService opss;
+    private final freemarker.template.Configuration conf;
 
     @Autowired
-    private freemarker.template.Configuration configuration;
+    public StartedListener(OptionsService opss, freemarker.template.Configuration conf) {
+        if (null == opss || null == conf) {
+            throw new NullPointerException();
+        } else {
+            this.opss = opss;
+            this.conf = conf;
+        }
+    }
 
     @Override
     public void onApplicationEvent(ApplicationStartedEvent event) {
-        try {
-            this.loadActiveTheme();
-        } catch (TemplateModelException e) {
-            e.printStackTrace();
-        }
-        this.loadOptions();
-        this.loadThemes();
-        this.loadOwo();
+        loadActiveTheme();
+        loadOptions();
+        loadThemes();
+        loadOwo();
         //启动定时任务
         CronUtil.start();
         log.info("The scheduled task starts successfully!");
@@ -55,22 +58,34 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
     /**
      * 加载主题设置
      */
-    private void loadActiveTheme() throws TemplateModelException {
-        String themeValue = optionsService.findOneOption(BlogPropertiesEnum.THEME.getProp());
-        if (StrUtil.isNotEmpty(themeValue) && !StrUtil.equals(themeValue, null)) {
+    private final void loadActiveTheme() {
+        String themeValue = opss.findOneOption(BlogProperties.THEME.getProp());
+        if (themeCheck(themeValue)) {
             BaseController.THEME = themeValue;
         } else {
             //以防万一
             BaseController.THEME = "anatole";
         }
-        configuration.setSharedVariable("themeName", BaseController.THEME);
+        try {
+            conf.setSharedVariable("themeName", BaseController.THEME);
+        } catch (TemplateModelException e) {
+            log.error(e.toString(), e);
+        }
+    }
+
+    private final boolean themeCheck(String theme) {
+        if (StrUtil.isNotEmpty(theme) && !StrUtil.equals(theme, null)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
      * 加载设置选项
      */
-    private void loadOptions() {
-        Map<String, String> options = optionsService.findAllOptions();
+    private final void loadOptions() {
+        Map<String, String> options = opss.findAllOptions();
         if (options != null && !options.isEmpty()) {
             HaloConst.OPTIONS = options;
         }
@@ -79,7 +94,7 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
     /**
      * 加载所有主题
      */
-    private void loadThemes() {
+    private final void loadThemes() {
         HaloConst.THEMES.clear();
         List<Theme> themes = HaloUtils.getThemes();
         if (null != themes) {
@@ -90,15 +105,20 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
     /**
      * 加载OwO表情
      */
-    private void loadOwo() {
-        Map<String, String> map = new HashMap<>(135);
-        map.put("@[nico]", "<img src='/static/plugins/OwO/paopao/nico.png' alt='nico.png' style='vertical-align: middle;'>");
+    private final void loadOwo() {
+        final Map<String, String> map = new HashMap<>(256);
+        map.put("@[nico]",
+                "<img src='/static/plugins/OwO/paopao/nico.png' alt='nico.png' style='vertical-align: middle;'>");
         map.put("@[OK]", "<img src='/static/plugins/OwO/paopao/OK.png' alt='OK.png' style='vertical-align: middle;'>");
-        map.put("@[what]", "<img src='/static/plugins/OwO/paopao/what.png' alt='what.png' style='vertical-align: middle;'>");
-        map.put("@[三道杠]", "<img src='/static/plugins/OwO/paopao/三道杠.png' alt='三道杠.png' style='vertical-align: middle;'>");
-        map.put("@[不高兴]", "<img src='/static/plugins/OwO/paopao/不高兴.png' alt='不高兴.png' style='vertical-align: middle;'>");
+        map.put("@[what]",
+                "<img src='/static/plugins/OwO/paopao/what.png' alt='what.png' style='vertical-align: middle;'>");
+        map.put("@[三道杠]",
+                "<img src='/static/plugins/OwO/paopao/三道杠.png' alt='三道杠.png' style='vertical-align: middle;'>");
+        map.put("@[不高兴]",
+                "<img src='/static/plugins/OwO/paopao/不高兴.png' alt='不高兴.png' style='vertical-align: middle;'>");
         map.put("@[乖]", "<img src='/static/plugins/OwO/paopao/乖.png' alt='乖.png' style='vertical-align: middle;'>");
-        map.put("@[你懂的]", "<img src='/static/plugins/OwO/paopao/你懂的.png' alt='你懂的.png' style='vertical-align: middle;'>");
+        map.put("@[你懂的]",
+                "<img src='/static/plugins/OwO/paopao/你懂的.png' alt='你懂的.png' style='vertical-align: middle;'>");
         map.put("@[便便]", "<img src='/static/plugins/OwO/paopao/便便.png' alt='便便.png' style='vertical-align: middle;'>");
         map.put("@[冷]", "<img src='/static/plugins/OwO/paopao/冷.png' alt='冷.png' style='vertical-align: middle;'>");
         map.put("@[勉强]", "<img src='/static/plugins/OwO/paopao/勉强.png' alt='勉强.png' style='vertical-align: middle;'>");
@@ -106,7 +126,8 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         map.put("@[吃翔]", "<img src='/static/plugins/OwO/paopao/吃翔.png' alt='吃翔.png' style='vertical-align: middle;'>");
         map.put("@[吐]", "<img src='/static/plugins/OwO/paopao/吐.png' alt='吐.png' style='vertical-align: middle;'>");
         map.put("@[吐舌]", "<img src='/static/plugins/OwO/paopao/吐舌.png' alt='吐舌.png' style='vertical-align: middle;'>");
-        map.put("@[呀咩爹]", "<img src='/static/plugins/OwO/paopao/呀咩爹.png' alt='呀咩爹.png' style='vertical-align: middle;'>");
+        map.put("@[呀咩爹]",
+                "<img src='/static/plugins/OwO/paopao/呀咩爹.png' alt='呀咩爹.png' style='vertical-align: middle;'>");
         map.put("@[呵呵]", "<img src='/static/plugins/OwO/paopao/呵呵.png' alt='呵呵.png' style='vertical-align: middle;'>");
         map.put("@[呼]", "<img src='/static/plugins/OwO/paopao/呼.png' alt='呼.png' style='vertical-align: middle;'>");
         map.put("@[咦]", "<img src='/static/plugins/OwO/paopao/咦.png' alt='咦.png' style='vertical-align: middle;'>");
@@ -114,12 +135,15 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         map.put("@[啊]", "<img src='/static/plugins/OwO/paopao/啊.png' alt='啊.png' style='vertical-align: middle;'>");
         map.put("@[喷]", "<img src='/static/plugins/OwO/paopao/喷.png' alt='喷.png' style='vertical-align: middle;'>");
         map.put("@[嘚瑟]", "<img src='/static/plugins/OwO/paopao/嘚瑟.png' alt='嘚瑟.png' style='vertical-align: middle;'>");
-        map.put("@[大拇指]", "<img src='/static/plugins/OwO/paopao/大拇指.png' alt='大拇指.png' style='vertical-align: middle;'>");
-        map.put("@[太开心]", "<img src='/static/plugins/OwO/paopao/太开心.png' alt='太开心.png' style='vertical-align: middle;'>");
+        map.put("@[大拇指]",
+                "<img src='/static/plugins/OwO/paopao/大拇指.png' alt='大拇指.png' style='vertical-align: middle;'>");
+        map.put("@[太开心]",
+                "<img src='/static/plugins/OwO/paopao/太开心.png' alt='太开心.png' style='vertical-align: middle;'>");
         map.put("@[太阳]", "<img src='/static/plugins/OwO/paopao/太阳.png' alt='太阳.png' style='vertical-align: middle;'>");
         map.put("@[委屈]", "<img src='/static/plugins/OwO/paopao/委屈.png' alt='委屈.png' style='vertical-align: middle;'>");
         map.put("@[小乖]", "<img src='/static/plugins/OwO/paopao/小乖.png' alt='小乖.png' style='vertical-align: middle;'>");
-        map.put("@[小红脸]", "<img src='/static/plugins/OwO/paopao/小红脸.png' alt='小红脸.png' style='vertical-align: middle;'>");
+        map.put("@[小红脸]",
+                "<img src='/static/plugins/OwO/paopao/小红脸.png' alt='小红脸.png' style='vertical-align: middle;'>");
         map.put("@[开心]", "<img src='/static/plugins/OwO/paopao/开心.png' alt='开心.png' style='vertical-align: middle;'>");
         map.put("@[弱]", "<img src='/static/plugins/OwO/paopao/弱.png' alt='弱.png' style='vertical-align: middle;'>");
         map.put("@[彩虹]", "<img src='/static/plugins/OwO/paopao/彩虹.png' alt='彩虹.png' style='vertical-align: middle;'>");
@@ -128,11 +152,14 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         map.put("@[惊哭]", "<img src='/static/plugins/OwO/paopao/惊哭.png' alt='惊哭.png' style='vertical-align: middle;'>");
         map.put("@[惊恐]", "<img src='/static/plugins/OwO/paopao/惊恐.png' alt='惊恐.png' style='vertical-align: middle;'>");
         map.put("@[惊讶]", "<img src='/static/plugins/OwO/paopao/惊讶.png' alt='惊讶.png' style='vertical-align: middle;'>");
-        map.put("@[懒得理]", "<img src='/static/plugins/OwO/paopao/懒得理.png' alt='懒得理.png' style='vertical-align: middle;'>");
+        map.put("@[懒得理]",
+                "<img src='/static/plugins/OwO/paopao/懒得理.png' alt='懒得理.png' style='vertical-align: middle;'>");
         map.put("@[手纸]", "<img src='/static/plugins/OwO/paopao/手纸.png' alt='手纸.png' style='vertical-align: middle;'>");
         map.put("@[挖鼻]", "<img src='/static/plugins/OwO/paopao/挖鼻.png' alt='挖鼻.png' style='vertical-align: middle;'>");
-        map.put("@[捂嘴笑]", "<img src='/static/plugins/OwO/paopao/捂嘴笑.png' alt='捂嘴笑.png' style='vertical-align: middle;'>");
-        map.put("@[星星月亮]", "<img src='/static/plugins/OwO/paopao/星星月亮.png' alt='星星月亮.png' style='vertical-align: middle;'>");
+        map.put("@[捂嘴笑]",
+                "<img src='/static/plugins/OwO/paopao/捂嘴笑.png' alt='捂嘴笑.png' style='vertical-align: middle;'>");
+        map.put("@[星星月亮]",
+                "<img src='/static/plugins/OwO/paopao/星星月亮.png' alt='星星月亮.png' style='vertical-align: middle;'>");
         map.put("@[汗]", "<img src='/static/plugins/OwO/paopao/汗.png' alt='汗.png' style='vertical-align: middle;'>");
         map.put("@[沙发]", "<img src='/static/plugins/OwO/paopao/沙发.png' alt='沙发.png' style='vertical-align: middle;'>");
         map.put("@[泪]", "<img src='/static/plugins/OwO/paopao/泪.png' alt='泪.png' style='vertical-align: middle;'>");
@@ -149,7 +176,8 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         map.put("@[礼物]", "<img src='/static/plugins/OwO/paopao/礼物.png' alt='礼物.png' style='vertical-align: middle;'>");
         map.put("@[笑尿]", "<img src='/static/plugins/OwO/paopao/笑尿.png' alt='笑尿.png' style='vertical-align: middle;'>");
         map.put("@[笑眼]", "<img src='/static/plugins/OwO/paopao/笑眼.png' alt='笑眼.png' style='vertical-align: middle;'>");
-        map.put("@[红领巾]", "<img src='/static/plugins/OwO/paopao/红领巾.png' alt='红领巾.png' style='vertical-align: middle;'>");
+        map.put("@[红领巾]",
+                "<img src='/static/plugins/OwO/paopao/红领巾.png' alt='红领巾.png' style='vertical-align: middle;'>");
         map.put("@[胜利]", "<img src='/static/plugins/OwO/paopao/胜利.png' alt='胜利.png' style='vertical-align: middle;'>");
         map.put("@[花心]", "<img src='/static/plugins/OwO/paopao/花心.png' alt='花心.png' style='vertical-align: middle;'>");
         map.put("@[茶杯]", "<img src='/static/plugins/OwO/paopao/茶杯.png' alt='茶杯.png' style='vertical-align: middle;'>");
@@ -165,7 +193,8 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         map.put("@[音乐]", "<img src='/static/plugins/OwO/paopao/音乐.png' alt='音乐.png' style='vertical-align: middle;'>");
         map.put("@[香蕉]", "<img src='/static/plugins/OwO/paopao/香蕉.png' alt='香蕉.png' style='vertical-align: middle;'>");
         map.put("@[黑线]", "<img src='/static/plugins/OwO/paopao/黑线.png' alt='黑线.png' style='vertical-align: middle;'>");
-        map.put("@(不出所料)", "<img src='/static/plugins/OwO/alu/不出所料.png' alt='不出所料.png' style='vertical-align: middle;'>");
+        map.put("@(不出所料)",
+                "<img src='/static/plugins/OwO/alu/不出所料.png' alt='不出所料.png' style='vertical-align: middle;'>");
         map.put("@(不说话)", "<img src='/static/plugins/OwO/alu/不说话.png' alt='不说话.png' style='vertical-align: middle;'>");
         map.put("@(不高兴)", "<img src='/static/plugins/OwO/alu/不高兴.png' alt='不高兴.png' style='vertical-align: middle;'>");
         map.put("@(中刀)", "<img src='/static/plugins/OwO/alu/中刀.png' alt='中刀.png' style='vertical-align: middle;'>");
@@ -179,11 +208,13 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         map.put("@(口水)", "<img src='/static/plugins/OwO/alu/口水.png' alt='口水.png' style='vertical-align: middle;'>");
         map.put("@(吐)", "<img src='/static/plugins/OwO/alu/吐.png' alt='吐.png' style='vertical-align: middle;'>");
         map.put("@(吐舌)", "<img src='/static/plugins/OwO/alu/吐舌.png' alt='吐舌.png' style='vertical-align: middle;'>");
-        map.put("@(吐血倒地)", "<img src='/static/plugins/OwO/alu/吐血倒地.png' alt='吐血倒地.png' style='vertical-align: middle;'>");
+        map.put("@(吐血倒地)",
+                "<img src='/static/plugins/OwO/alu/吐血倒地.png' alt='吐血倒地.png' style='vertical-align: middle;'>");
         map.put("@(呲牙)", "<img src='/static/plugins/OwO/alu/呲牙.png' alt='呲牙.png' style='vertical-align: middle;'>");
         map.put("@(咽气)", "<img src='/static/plugins/OwO/alu/咽气.png' alt='咽气.png' style='vertical-align: middle;'>");
         map.put("@(哭泣)", "<img src='/static/plugins/OwO/alu/哭泣.png' alt='哭泣.png' style='vertical-align: middle;'>");
-        map.put("@(喜极而泣)", "<img src='/static/plugins/OwO/alu/喜极而泣.png' alt='喜极而泣.png' style='vertical-align: middle;'>");
+        map.put("@(喜极而泣)",
+                "<img src='/static/plugins/OwO/alu/喜极而泣.png' alt='喜极而泣.png' style='vertical-align: middle;'>");
         map.put("@(喷水)", "<img src='/static/plugins/OwO/alu/喷水.png' alt='喷水.png' style='vertical-align: middle;'>");
         map.put("@(喷血)", "<img src='/static/plugins/OwO/alu/喷血.png' alt='喷血.png' style='vertical-align: middle;'>");
         map.put("@(坐等)", "<img src='/static/plugins/OwO/alu/坐等.png' alt='坐等.png' style='vertical-align: middle;'>");
@@ -203,7 +234,8 @@ public class StartedListener implements ApplicationListener<ApplicationStartedEv
         map.put("@(无奈)", "<img src='/static/plugins/OwO/alu/无奈.png' alt='无奈.png' style='vertical-align: middle;'>");
         map.put("@(无所谓)", "<img src='/static/plugins/OwO/alu/无所谓.png' alt='无所谓.png' style='vertical-align: middle;'>");
         map.put("@(无语)", "<img src='/static/plugins/OwO/alu/无语.png' alt='无语.png' style='vertical-align: middle;'>");
-        map.put("@(暗地观察)", "<img src='/static/plugins/OwO/alu/暗地观察.png' alt='暗地观察.png' style='vertical-align: middle;'>");
+        map.put("@(暗地观察)",
+                "<img src='/static/plugins/OwO/alu/暗地观察.png' alt='暗地观察.png' style='vertical-align: middle;'>");
         map.put("@(期待)", "<img src='/static/plugins/OwO/alu/期待.png' alt='期待.png' style='vertical-align: middle;'>");
         map.put("@(欢呼)", "<img src='/static/plugins/OwO/alu/欢呼.png' alt='欢呼.png' style='vertical-align: middle;'>");
         map.put("@(汗)", "<img src='/static/plugins/OwO/alu/汗.png' alt='汗.png' style='vertical-align: middle;'>");

@@ -8,7 +8,7 @@ package cc.ryanc.halo.model.enums;
  * @author : RYAN0UP
  * @date : 2018/7/1
  */
-public enum ResponseStatusEnum {
+public enum ResponseStatus {
 
     /**
      * 请求成功
@@ -33,7 +33,7 @@ public enum ResponseStatusEnum {
     private Integer code;
     private String msg;
 
-    ResponseStatusEnum(Integer code, String msg) {
+    ResponseStatus(Integer code, String msg) {
         this.code = code;
         this.msg = msg;
     }

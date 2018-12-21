@@ -2,7 +2,7 @@ package cc.ryanc.halo.web.controller.api;
 
 import cc.ryanc.halo.model.domain.Gallery;
 import cc.ryanc.halo.model.dto.JsonResult;
-import cc.ryanc.halo.model.enums.ResponseStatusEnum;
+import cc.ryanc.halo.model.enums.ResponseStatus;
 import cc.ryanc.halo.service.GalleryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -56,9 +56,9 @@ public class ApiGalleryController {
     public JsonResult galleries() {
         List<Gallery> galleries = galleryService.findAll();
         if (null != galleries && galleries.size() > 0) {
-            return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), galleries);
+            return new JsonResult(ResponseStatus.SUCCESS.getCode(), ResponseStatus.SUCCESS.getMsg(), galleries);
         } else {
-            return new JsonResult(ResponseStatusEnum.EMPTY.getCode(), ResponseStatusEnum.EMPTY.getMsg());
+            return new JsonResult(ResponseStatus.EMPTY.getCode(), ResponseStatus.EMPTY.getMsg());
         }
     }
 
@@ -93,9 +93,9 @@ public class ApiGalleryController {
     public JsonResult galleries(@PathVariable("id") Long id) {
         Optional<Gallery> gallery = galleryService.findByGalleryId(id);
         if (gallery.isPresent()) {
-            return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), gallery.get());
+            return new JsonResult(ResponseStatus.SUCCESS.getCode(), ResponseStatus.SUCCESS.getMsg(), gallery.get());
         } else {
-            return new JsonResult(ResponseStatusEnum.NOTFOUND.getCode(), ResponseStatusEnum.NOTFOUND.getMsg());
+            return new JsonResult(ResponseStatus.NOTFOUND.getCode(), ResponseStatus.NOTFOUND.getMsg());
         }
     }
 }

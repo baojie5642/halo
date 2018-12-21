@@ -3,10 +3,10 @@ package cc.ryanc.halo.web.controller.core;
 import cc.ryanc.halo.model.domain.*;
 import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.LogsRecord;
-import cc.ryanc.halo.model.enums.AllowCommentEnum;
-import cc.ryanc.halo.model.enums.AttachLocationEnum;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
-import cc.ryanc.halo.model.enums.TrueFalseEnum;
+import cc.ryanc.halo.model.enums.AllowComment;
+import cc.ryanc.halo.model.enums.AttachLocation;
+import cc.ryanc.halo.model.enums.BlogProperties;
+import cc.ryanc.halo.model.enums.TrueFalse;
 import cc.ryanc.halo.service.*;
 import cc.ryanc.halo.utils.MarkdownUtils;
 import cn.hutool.core.date.DateUtil;
@@ -71,16 +71,26 @@ public class InstallController {
     @GetMapping
     public String install(Model model) {
         try {
-            if (StrUtil.equals(TrueFalseEnum.TRUE.getDesc(), HaloConst.OPTIONS.get(BlogPropertiesEnum.IS_INSTALL.getProp()))) {
+            if (installCheck()) {
                 model.addAttribute("isInstall", true);
             } else {
                 model.addAttribute("isInstall", false);
             }
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error(e.toString(), e);
         }
         return "common/install";
     }
+
+    private final boolean installCheck() {
+        if (StrUtil.equals(TrueFalse.TRUE.getDesc(),
+                HaloConst.OPTIONS.get(BlogProperties.IS_INSTALL.getProp()))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
     /**
      * 执行安装
@@ -98,15 +108,16 @@ public class InstallController {
     @PostMapping(value = "/do")
     @ResponseBody
     public boolean doInstall(@RequestParam("blogLocale") String blogLocale,
-                             @RequestParam("blogTitle") String blogTitle,
-                             @RequestParam("blogUrl") String blogUrl,
-                             @RequestParam("userName") String userName,
-                             @RequestParam("userDisplayName") String userDisplayName,
-                             @RequestParam("userEmail") String userEmail,
-                             @RequestParam("userPwd") String userPwd,
-                             HttpServletRequest request) {
+            @RequestParam("blogTitle") String blogTitle,
+            @RequestParam("blogUrl") String blogUrl,
+            @RequestParam("userName") String userName,
+            @RequestParam("userDisplayName") String userDisplayName,
+            @RequestParam("userEmail") String userEmail,
+            @RequestParam("userPwd") String userPwd,
+            HttpServletRequest request) {
         try {
-            if (StrUtil.equals(TrueFalseEnum.TRUE.getDesc(), HaloConst.OPTIONS.get(BlogPropertiesEnum.IS_INSTALL.getProp()))) {
+            if (StrUtil.equals(TrueFalse.TRUE.getDesc(),
+                    HaloConst.OPTIONS.get(BlogProperties.IS_INSTALL.getProp()))) {
                 return false;
             }
             //创建新的用户
@@ -141,7 +152,7 @@ public class InstallController {
             post.setPostUrl("hello-halo");
             post.setUser(user);
             post.setCategories(categories);
-            post.setAllowComment(AllowCommentEnum.ALLOW.getCode());
+            post.setAllowComment(AllowComment.ALLOW.getCode());
             postService.save(post);
 
             //第一个评论
@@ -155,22 +166,24 @@ public class InstallController {
             comment.setCommentDate(DateUtil.date());
             comment.setCommentContent("欢迎，欢迎！");
             comment.setCommentStatus(0);
-            comment.setCommentAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.162 Safari/537.36");
+            comment.setCommentAgent(
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65" +
+                            ".0.3325.162 Safari/537.36");
             comment.setIsAdmin(0);
             commentService.save(comment);
 
             Map<String, String> options = new HashMap<>();
-            options.put(BlogPropertiesEnum.IS_INSTALL.getProp(), TrueFalseEnum.TRUE.getDesc());
-            options.put(BlogPropertiesEnum.BLOG_LOCALE.getProp(), blogLocale);
-            options.put(BlogPropertiesEnum.BLOG_TITLE.getProp(), blogTitle);
-            options.put(BlogPropertiesEnum.BLOG_URL.getProp(), blogUrl);
-            options.put(BlogPropertiesEnum.THEME.getProp(), "anatole");
-            options.put(BlogPropertiesEnum.BLOG_START.getProp(), DateUtil.format(DateUtil.date(), "yyyy-MM-dd"));
-            options.put(BlogPropertiesEnum.SMTP_EMAIL_ENABLE.getProp(), TrueFalseEnum.FALSE.getDesc());
-            options.put(BlogPropertiesEnum.NEW_COMMENT_NOTICE.getProp(), TrueFalseEnum.FALSE.getDesc());
-            options.put(BlogPropertiesEnum.COMMENT_PASS_NOTICE.getProp(), TrueFalseEnum.FALSE.getDesc());
-            options.put(BlogPropertiesEnum.COMMENT_REPLY_NOTICE.getProp(), TrueFalseEnum.FALSE.getDesc());
-            options.put(BlogPropertiesEnum.ATTACH_LOC.getProp(), AttachLocationEnum.SERVER.getDesc());
+            options.put(BlogProperties.IS_INSTALL.getProp(), TrueFalse.TRUE.getDesc());
+            options.put(BlogProperties.BLOG_LOCALE.getProp(), blogLocale);
+            options.put(BlogProperties.BLOG_TITLE.getProp(), blogTitle);
+            options.put(BlogProperties.BLOG_URL.getProp(), blogUrl);
+            options.put(BlogProperties.THEME.getProp(), "anatole");
+            options.put(BlogProperties.BLOG_START.getProp(), DateUtil.format(DateUtil.date(), "yyyy-MM-dd"));
+            options.put(BlogProperties.SMTP_EMAIL_ENABLE.getProp(), TrueFalse.FALSE.getDesc());
+            options.put(BlogProperties.NEW_COMMENT_NOTICE.getProp(), TrueFalse.FALSE.getDesc());
+            options.put(BlogProperties.COMMENT_PASS_NOTICE.getProp(), TrueFalse.FALSE.getDesc());
+            options.put(BlogProperties.COMMENT_REPLY_NOTICE.getProp(), TrueFalse.FALSE.getDesc());
+            options.put(BlogProperties.ATTACH_LOC.getProp(), AttachLocation.SERVER.getDesc());
             optionsService.saveOptions(options);
 
             //更新日志

@@ -15,7 +15,15 @@ public abstract class BaseController {
     /**
      * 定义默认主题
      */
-    public static String THEME = "anatole";
+    public static volatile String THEME = "anatole";
+
+    public static void setTheme(String theme) {
+        if (null == theme) {
+            return;
+        } else {
+            THEME = theme;
+        }
+    }
 
     /**
      * 根据主题名称渲染页面

@@ -2,33 +2,33 @@ package cc.ryanc.halo.model.enums;
 
 /**
  * <pre>
- *     附件存储地址enum
+ *     文章状态enum
  * </pre>
  *
- * @author : Yawn
- * @date : 2018/12/4
+ * @author : RYAN0UP
+ * @date : 2018/7/1
  */
-public enum AttachLocationEnum {
+public enum PostStatus {
 
     /**
-     * 服务器
+     * 已发布
      */
-    SERVER(0,"SERVER"),
+    PUBLISHED(0, "已发布"),
 
     /**
-     * 七牛
+     * 草稿
      */
-    QINIU(1,"QINIU"),
+    DRAFT(1, "草稿"),
 
     /**
-     * 又拍云
+     * 回收站
      */
-    UPYUN(2,"UPYUN");
+    RECYCLE(2, "回收站");
 
     private Integer code;
     private String desc;
 
-    AttachLocationEnum(Integer code, String desc) {
+    PostStatus(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
     }

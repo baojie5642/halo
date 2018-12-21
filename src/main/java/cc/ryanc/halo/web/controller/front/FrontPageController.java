@@ -5,10 +5,10 @@ import cc.ryanc.halo.model.domain.Gallery;
 import cc.ryanc.halo.model.domain.Post;
 import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.ListPage;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
-import cc.ryanc.halo.model.enums.CommentStatusEnum;
-import cc.ryanc.halo.model.enums.PostTypeEnum;
-import cc.ryanc.halo.model.enums.TrueFalseEnum;
+import cc.ryanc.halo.model.enums.BlogProperties;
+import cc.ryanc.halo.model.enums.CommentStatus;
+import cc.ryanc.halo.model.enums.PostType;
+import cc.ryanc.halo.model.enums.TrueFalse;
 import cc.ryanc.halo.service.CommentService;
 import cc.ryanc.halo.service.GalleryService;
 import cc.ryanc.halo.service.PostService;
@@ -78,21 +78,22 @@ public class FrontPageController extends BaseController {
     public String getPage(@PathVariable(value = "postUrl") String postUrl,
                           @RequestParam(value = "cp", defaultValue = "1") Integer cp,
                           Model model) {
-        Post post = postService.findByPostUrl(postUrl, PostTypeEnum.POST_TYPE_PAGE.getDesc());
+        Post post = postService.findByPostUrl(postUrl, PostType.POST_TYPE_PAGE.getDesc());
         if (null == post) {
             return this.renderNotFound();
         }
         List<Comment> comments = null;
-        if (StrUtil.equals(HaloConst.OPTIONS.get(BlogPropertiesEnum.NEW_COMMENT_NEED_CHECK.getProp()), TrueFalseEnum.TRUE.getDesc()) || HaloConst.OPTIONS.get(BlogPropertiesEnum.NEW_COMMENT_NEED_CHECK.getProp()) == null) {
-            comments = commentService.findCommentsByPostAndCommentStatus(post, CommentStatusEnum.PUBLISHED.getCode());
+        if (StrUtil.equals(HaloConst.OPTIONS.get(BlogProperties.NEW_COMMENT_NEED_CHECK.getProp()), TrueFalse.TRUE.getDesc()) || HaloConst.OPTIONS.get(
+                BlogProperties.NEW_COMMENT_NEED_CHECK.getProp()) == null) {
+            comments = commentService.findCommentsByPostAndCommentStatus(post, CommentStatus.PUBLISHED.getCode());
         } else {
-            comments = commentService.findCommentsByPostAndCommentStatusNot(post, CommentStatusEnum.RECYCLE.getCode());
+            comments = commentService.findCommentsByPostAndCommentStatusNot(post, CommentStatus.RECYCLE.getCode());
         }
         //默认显示10条
         Integer size = 10;
         //获取每页评论条数
-        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_COMMENTS.getProp()))) {
-            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_COMMENTS.getProp()));
+        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogProperties.INDEX_COMMENTS.getProp()))) {
+            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogProperties.INDEX_COMMENTS.getProp()));
         }
         //评论分页
         ListPage<Comment> commentsPage = new ListPage<Comment>(CommentUtil.getComments(comments), cp, size);

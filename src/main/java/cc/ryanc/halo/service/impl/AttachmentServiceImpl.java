@@ -3,8 +3,8 @@ package cc.ryanc.halo.service.impl;
 import cc.ryanc.halo.model.domain.Attachment;
 import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.QiNiuPutSet;
-import cc.ryanc.halo.model.enums.AttachLocationEnum;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
+import cc.ryanc.halo.model.enums.AttachLocation;
+import cc.ryanc.halo.model.enums.BlogProperties;
 import cc.ryanc.halo.repository.AttachmentRepository;
 import cc.ryanc.halo.service.AttachmentService;
 import cc.ryanc.halo.utils.HaloUtils;
@@ -127,7 +127,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Override
     public Map<String, String> upload(MultipartFile file, HttpServletRequest request) {
         Map<String, String> resultMap;
-        String attachLoc = HaloConst.OPTIONS.get(BlogPropertiesEnum.ATTACH_LOC.getProp());
+        String attachLoc = HaloConst.OPTIONS.get(BlogProperties.ATTACH_LOC.getProp());
         if (StrUtil.isEmpty(attachLoc)) {
             return null;
         }
@@ -232,7 +232,7 @@ public class AttachmentServiceImpl implements AttachmentService {
             resultMap.put("suffix", fileSuffix);
             resultMap.put("size", size);
             resultMap.put("wh", wh);
-            resultMap.put("location", AttachLocationEnum.SERVER.getDesc());
+            resultMap.put("location", AttachLocation.SERVER.getDesc());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -292,7 +292,7 @@ public class AttachmentServiceImpl implements AttachmentService {
             resultMap.put("suffix", file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.')));
             resultMap.put("size", HaloUtils.parseSize(file.getSize()));
             resultMap.put("wh", putSet.getW() + "x" + putSet.getH());
-            resultMap.put("location", AttachLocationEnum.QINIU.getDesc());
+            resultMap.put("location", AttachLocation.QINIU.getDesc());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -341,7 +341,7 @@ public class AttachmentServiceImpl implements AttachmentService {
             resultMap.put("smallPath", smallPath.trim());
             resultMap.put("suffix", fileSuffix);
             resultMap.put("size", HaloUtils.parseSize(file.getSize()));
-            resultMap.put("location", AttachLocationEnum.UPYUN.getDesc());
+            resultMap.put("location", AttachLocation.UPYUN.getDesc());
 
         } catch (Exception e) {
             e.printStackTrace();

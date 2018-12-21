@@ -1,8 +1,8 @@
 package cc.ryanc.halo.web.interceptor;
 
 import cc.ryanc.halo.model.dto.HaloConst;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
-import cc.ryanc.halo.model.enums.TrueFalseEnum;
+import cc.ryanc.halo.model.enums.BlogProperties;
+import cc.ryanc.halo.model.enums.TrueFalse;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
@@ -27,8 +27,8 @@ public class ApiInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        if (StrUtil.equals(TrueFalseEnum.TRUE.getDesc(), HaloConst.OPTIONS.get(BlogPropertiesEnum.API_STATUS.getProp()))) {
-            if (StrUtil.equals(request.getHeader("token"), HaloConst.OPTIONS.get(BlogPropertiesEnum.API_TOKEN.getProp()))) {
+        if (StrUtil.equals(TrueFalse.TRUE.getDesc(), HaloConst.OPTIONS.get(BlogProperties.API_STATUS.getProp()))) {
+            if (StrUtil.equals(request.getHeader("token"), HaloConst.OPTIONS.get(BlogProperties.API_TOKEN.getProp()))) {
                 return true;
             } else {
                 response.setCharacterEncoding("UTF-8");

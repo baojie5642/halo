@@ -5,8 +5,8 @@ import cc.ryanc.halo.model.domain.Post;
 import cc.ryanc.halo.model.domain.Tag;
 import cc.ryanc.halo.model.dto.Archive;
 import cc.ryanc.halo.model.dto.HaloConst;
-import cc.ryanc.halo.model.enums.PostStatusEnum;
-import cc.ryanc.halo.model.enums.PostTypeEnum;
+import cc.ryanc.halo.model.enums.PostStatus;
+import cc.ryanc.halo.model.enums.PostType;
 import cc.ryanc.halo.repository.PostRepository;
 import cc.ryanc.halo.service.CategoryService;
 import cc.ryanc.halo.service.PostService;
@@ -100,7 +100,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @CacheEvict(value = POSTS_CACHE_NAME, allEntries = true, beforeInvocation = true)
     public void updateAllSummary(Integer postSummary) {
-        List<Post> posts = this.findAll(PostTypeEnum.POST_TYPE_POST.getDesc());
+        List<Post> posts = this.findAll(PostType.POST_TYPE_POST.getDesc());
         for (Post post : posts) {
             String text = StrUtil.cleanBlank(HtmlUtil.cleanHtmlTag(post.getPostContent()));
             if (text.length() > postSummary) {
@@ -158,7 +158,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Cacheable(value = POSTS_CACHE_NAME, key = "'posts_page_'+#pageable.pageNumber")
     public Page<Post> findPostByStatus(Pageable pageable) {
-        return postRepository.findPostsByPostStatusAndPostType(PostStatusEnum.PUBLISHED.getCode(), PostTypeEnum.POST_TYPE_POST.getDesc(), pageable);
+        return postRepository.findPostsByPostStatusAndPostType(PostStatus.PUBLISHED.getCode(), PostType.POST_TYPE_POST.getDesc(), pageable);
     }
 
     /**
@@ -228,7 +228,7 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public List<Post> findByPostDateAfter(Date postDate) {
-        return postRepository.findByPostDateAfterAndPostStatusAndPostTypeOrderByPostDateDesc(postDate, PostStatusEnum.PUBLISHED.getCode(), PostTypeEnum.POST_TYPE_POST.getDesc());
+        return postRepository.findByPostDateAfterAndPostStatusAndPostTypeOrderByPostDateDesc(postDate, PostStatus.PUBLISHED.getCode(), PostType.POST_TYPE_POST.getDesc());
     }
 
     /**
@@ -239,7 +239,7 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public List<Post> findByPostDateBefore(Date postDate) {
-        return postRepository.findByPostDateBeforeAndPostStatusAndPostTypeOrderByPostDateAsc(postDate, PostStatusEnum.PUBLISHED.getCode(), PostTypeEnum.POST_TYPE_POST.getDesc());
+        return postRepository.findByPostDateBeforeAndPostStatusAndPostTypeOrderByPostDateAsc(postDate, PostStatus.PUBLISHED.getCode(), PostType.POST_TYPE_POST.getDesc());
     }
 
 
@@ -335,7 +335,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @CachePut(value = POSTS_CACHE_NAME, key = "'posts_category_'+#category.cateId+'_'+#pageable.pageNumber")
     public Page<Post> findPostByCategories(Category category, Pageable pageable) {
-        return postRepository.findPostByCategoriesAndPostStatus(category, PostStatusEnum.PUBLISHED.getCode(), pageable);
+        return postRepository.findPostByCategoriesAndPostStatus(category, PostStatus.PUBLISHED.getCode(), pageable);
     }
 
     /**
@@ -349,7 +349,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @CachePut(value = POSTS_CACHE_NAME, key = "'posts_tag_'+#tag.tagId+'_'+#pageable.pageNumber")
     public Page<Post> findPostsByTags(Tag tag, Pageable pageable) {
-        return postRepository.findPostsByTagsAndPostStatus(tag, PostStatusEnum.PUBLISHED.getCode(), pageable);
+        return postRepository.findPostsByTagsAndPostStatus(tag, PostStatus.PUBLISHED.getCode(), pageable);
     }
 
     /**
@@ -372,7 +372,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Cacheable(value = POSTS_CACHE_NAME, key = "'posts_hot'")
     public List<Post> hotPosts() {
-        return postRepository.findPostsByPostTypeOrderByPostViewsDesc(PostTypeEnum.POST_TYPE_POST.getDesc());
+        return postRepository.findPostsByPostTypeOrderByPostViewsDesc(PostType.POST_TYPE_POST.getDesc());
     }
 
     /**
@@ -420,7 +420,7 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public Integer getCountByStatus(Integer status) {
-        return postRepository.countAllByPostStatusAndPostType(status, PostTypeEnum.POST_TYPE_POST.getDesc());
+        return postRepository.countAllByPostStatusAndPostType(status, PostType.POST_TYPE_POST.getDesc());
     }
 
     /**

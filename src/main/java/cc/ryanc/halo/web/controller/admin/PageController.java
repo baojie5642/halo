@@ -7,9 +7,9 @@ import cc.ryanc.halo.model.domain.User;
 import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.JsonResult;
 import cc.ryanc.halo.model.dto.LogsRecord;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
-import cc.ryanc.halo.model.enums.PostTypeEnum;
-import cc.ryanc.halo.model.enums.ResultCodeEnum;
+import cc.ryanc.halo.model.enums.BlogProperties;
+import cc.ryanc.halo.model.enums.PostType;
+import cc.ryanc.halo.model.enums.ResultCode;
 import cc.ryanc.halo.service.GalleryService;
 import cc.ryanc.halo.service.LinkService;
 import cc.ryanc.halo.service.LogsService;
@@ -73,7 +73,7 @@ public class PageController {
      */
     @GetMapping
     public String pages(Model model) {
-        List<Post> posts = postService.findAll(PostTypeEnum.POST_TYPE_PAGE.getDesc());
+        List<Post> posts = postService.findAll(PostType.POST_TYPE_PAGE.getDesc());
         model.addAttribute("pages", posts);
         return "admin/admin_page";
     }
@@ -199,9 +199,9 @@ public class PageController {
             galleryService.remove(galleryId);
         } catch (Exception e) {
             log.error("Failed to delete image: {}", e.getMessage());
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.delete-failed"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.delete-failed"));
         }
-        return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.delete-success"));
+        return new JsonResult(ResultCode.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.delete-success"));
     }
 
     /**
@@ -212,7 +212,7 @@ public class PageController {
      */
     @GetMapping(value = "/new")
     public String newPage(Model model) {
-        List<String> customTpls = HaloUtils.getCustomTpl(HaloConst.OPTIONS.get(BlogPropertiesEnum.THEME.getProp()));
+        List<String> customTpls = HaloUtils.getCustomTpl(HaloConst.OPTIONS.get(BlogProperties.THEME.getProp()));
         model.addAttribute("customTpls", customTpls);
         return "admin/admin_page_md_editor";
     }
@@ -231,7 +231,7 @@ public class PageController {
             //发表用户
             User user = (User) session.getAttribute(HaloConst.USER_SESSION_KEY);
             post.setUser(user);
-            post.setPostType(PostTypeEnum.POST_TYPE_PAGE.getDesc());
+            post.setPostType(PostType.POST_TYPE_PAGE.getDesc());
             if (null != post.getPostId()) {
                 Post oldPost = postService.findByPostId(post.getPostId()).get();
                 if (null == post.getPostDate()) {
@@ -245,15 +245,15 @@ public class PageController {
             post.setPostUpdate(DateUtil.date());
             post.setPostContent(MarkdownUtils.renderMarkdown(post.getPostContentMd()));
             //当没有选择文章缩略图的时候，自动分配一张内置的缩略图
-            if (StrUtil.equals(post.getPostThumbnail(), BlogPropertiesEnum.DEFAULT_THUMBNAIL.getProp())) {
+            if (StrUtil.equals(post.getPostThumbnail(), BlogProperties.DEFAULT_THUMBNAIL.getProp())) {
                 post.setPostThumbnail("/static/images/thumbnail/thumbnail-" + RandomUtil.randomInt(1, 10) + ".jpg");
             }
             postService.save(post);
             logsService.save(LogsRecord.PUSH_PAGE, post.getPostTitle(), request);
-            return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), msg);
+            return new JsonResult(ResultCode.SUCCESS.getCode(), msg);
         } catch (Exception e) {
             log.error("Save page failed: {}", e.getMessage());
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.save-failed"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.save-failed"));
         }
     }
 
@@ -267,7 +267,7 @@ public class PageController {
     @GetMapping(value = "/edit")
     public String editPage(@RequestParam("pageId") Long pageId, Model model) {
         Optional<Post> post = postService.findByPostId(pageId);
-        List<String> customTpls = HaloUtils.getCustomTpl(HaloConst.OPTIONS.get(BlogPropertiesEnum.THEME.getProp()));
+        List<String> customTpls = HaloUtils.getCustomTpl(HaloConst.OPTIONS.get(BlogProperties.THEME.getProp()));
         model.addAttribute("post", post.orElse(new Post()));
         model.addAttribute("customTpls", customTpls);
         return "admin/admin_page_md_editor";
@@ -282,11 +282,11 @@ public class PageController {
     @GetMapping(value = "/checkUrl")
     @ResponseBody
     public JsonResult checkUrlExists(@RequestParam("postUrl") String postUrl) {
-        Post post = postService.findByPostUrl(postUrl, PostTypeEnum.POST_TYPE_PAGE.getDesc());
+        Post post = postService.findByPostUrl(postUrl, PostType.POST_TYPE_PAGE.getDesc());
         if (null != post) {
-            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.url-is-exists"));
+            return new JsonResult(ResultCode.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.url-is-exists"));
         }
-        return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), "");
+        return new JsonResult(ResultCode.SUCCESS.getCode(), "");
     }
 
     @InitBinder

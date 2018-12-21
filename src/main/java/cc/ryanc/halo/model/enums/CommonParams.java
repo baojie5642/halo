@@ -8,7 +8,7 @@ package cc.ryanc.halo.model.enums;
  * @author : RYAN0UP
  * @date : 2018/8/1
  */
-public enum CommonParamsEnum {
+public enum CommonParams {
 
     /**
      * 数字10
@@ -32,7 +32,7 @@ public enum CommonParamsEnum {
 
     private Integer value;
 
-    CommonParamsEnum(Integer value) {
+    CommonParams(Integer value) {
         this.value = value;
     }
 
